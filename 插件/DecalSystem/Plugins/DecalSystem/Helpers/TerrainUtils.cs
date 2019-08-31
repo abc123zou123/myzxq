@@ -1,4 +1,4 @@
-﻿#if UNITY_EDITOR
+﻿//#if UNITY_EDITOR
 namespace DecalSystem {
     using System.Collections;
     using System.Collections.Generic;
@@ -22,19 +22,120 @@ namespace DecalSystem {
             return GetTriangles( terrain.terrainData, min, max ).Select( i => MeshUtils.Transform( terrainToDecalMatrix, i ) );
         }
         private static IEnumerable<Triangle> GetTriangles(TerrainData terrain, Vector3Int min, Vector3Int max) {
-            for (var z = min.z; z <= max.z; z++) {
-                for (var x = min.x; x <= max.x; x++) {
-                    // 1  2
-                    // 3  4
-                    var v1 = terrain.GetVertex( x + 0, z + 0 );
-                    var v2 = terrain.GetVertex( x + 1, z + 0 );
-                    var v3 = terrain.GetVertex( x + 0, z + 1 );
-                    var v4 = terrain.GetVertex( x + 1, z + 1 );
+            int samplerDetail = 2;
 
-                    yield return new Triangle( v1, v3, v4 );
+
+            int xGrid = ((max.x - min.x) + 1) / samplerDetail;
+            int zGrid = ((max.z - min.z) + 1) / samplerDetail;
+
+
+            int times = 1;
+            int lastSamplerDetail = samplerDetail;
+            while (xGrid * zGrid > 400)
+            {
+                if (times > 1000)
+                {
+                    Debug.LogError("贴花太大导致死循环了");
+                    break;
+                }
+                lastSamplerDetail = samplerDetail + times;
+                xGrid = ((max.x - min.x) + 1) / lastSamplerDetail;
+                zGrid = ((max.z - min.z) + 1) / lastSamplerDetail;
+                times++;
+            }
+            samplerDetail = lastSamplerDetail; //重置回去
+
+            for (int z = 0;z < zGrid; z++)
+            {
+                for(int x = 0; x < xGrid;x++)
+                {
+                    Vector3 v1, v2, v3, v4;
+                    v1 = terrain.GetVertex(min.x + x * samplerDetail,min.z + z* samplerDetail);
+                    v2 = terrain.GetVertex(min.x + (x + 1) * samplerDetail, min.z + z * samplerDetail);
+                    v3 = terrain.GetVertex(min.x + x * samplerDetail, min.z + (z + 1) * samplerDetail);
+                    v4 = terrain.GetVertex(min.x + (x + 1) * samplerDetail, min.z + (z+1) * samplerDetail);
+                    if (min.x + (x + 1) * samplerDetail >= max.x)
+                    {
+                        v2 = terrain.GetVertex(max.x, min.z + z * samplerDetail);
+                        if (min.z + (z + 1) * samplerDetail >= max.z)
+                        {
+                            v4 = terrain.GetVertex(max.x, max.z);
+                        }
+                        else
+                        {
+                            v4 = terrain.GetVertex(max.x, min.z + (z+1) * samplerDetail);
+                        }
+                    }
+
+                    if (min.z + (z + 1) * samplerDetail >= max.z)
+                    {
+                        v3 = terrain.GetVertex(min.x + x * samplerDetail,max.z );
+                        if (min.x + (x + 1) * samplerDetail >= max.x)
+                        {
+                            v4 = terrain.GetVertex(max.x, max.z);
+                        }
+                        else
+                        {
+                            v4 = terrain.GetVertex(min.x + (x+1) * samplerDetail, max.z);
+                        }
+                    }
+
+                    yield return new Triangle(v1, v3, v4);
                     yield return new Triangle( v1, v4, v2 );
+
+                    //if (min.x + (x+1)* samplerDetail >= max.x)
+                    //{
+                    //    //v2 = terrain.GetVertex(max.x, min.z + z * samplerDetail);
+                    //    //if (min.z + (z+1)* samplerDetail >= max.z)
+                    //    //{
+                    //    //    v4 = terrain.GetVertex(max.x, max.z);
+                    //    //}
+                    //    //else
+                    //    //{
+                    //    //    v4 = terrain.GetVertex(max.x, min.z + (z + 1) * samplerDetail);
+                    //    //}
+                    //}
+                    //else
+                    //{
+                    //    v2 = terrain.GetVertex(min.x + (x + 1) * samplerDetail, min.z + z * samplerDetail);
+                    //    if (min.z + (z + 1) * samplerDetail >= max.z)
+                    //    {
+
+                    //    }
+                    //}
+
+
                 }
             }
+
+            //for (var z = min.z; z <= max.z; z+= samplerDetail) {
+
+            //    if (numtick > 100)
+            //    {
+            //        break;
+            //    }
+
+            //    for (var x = min.x; x <= max.x; x+= samplerDetail) {
+            //        // 1  2
+            //        // 3  4
+            //        numtick++;
+            //        if (numtick > 100 )
+            //        {
+            //            break;
+            //        }
+
+            //        Debug.Log($"x = {x} z = {z}");
+            //        var v1 = terrain.GetVertex( x + 0, z + 0 );
+            //        var v2 = terrain.GetVertex( x + samplerDetail, z + 0 );
+            //        var v3 = terrain.GetVertex( x + 0, z + samplerDetail);
+            //        var v4 = terrain.GetVertex( x + samplerDetail, z + samplerDetail);
+
+            //        yield return new Triangle( v1, v3, v4 );
+            //        yield return new Triangle( v1, v4, v2 );
+            //    }
+            //}
+
+
         }
 
 
@@ -73,4 +174,4 @@ namespace DecalSystem {
 
     }
 }
-#endif
+//#endif

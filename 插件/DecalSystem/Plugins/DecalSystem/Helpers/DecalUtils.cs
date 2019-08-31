@@ -1,10 +1,10 @@
-﻿#if UNITY_EDITOR
+﻿//#if UNITY_EDITOR
 namespace DecalSystem {
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
-    using UnityEditor;
-    using UnityEditor.SceneManagement;
+    //using UnityEditor;
+    //using UnityEditor.SceneManagement;
     using UnityEngine;
 
     static class DecalUtils {
@@ -17,8 +17,8 @@ namespace DecalSystem {
             {
                 return GameObject.FindObjectsOfType<MeshRenderer>()
                 .Where(i => i.GetComponent<Decal>() == null) // ignore another decals
-                .Where(i => i.gameObject.isStatic || !isOnlyStatic)
-                .Where(i => HasLayer(decal.LayerMask, i.gameObject.layer))
+                .Where(i => !i.gameObject.isStatic)
+                .Where(i => HasLayer(decal.layerMask, i.gameObject.layer))
                 .Where(i => bounds.Intersects(i.bounds))
 
                 .Select(i => i.GetComponent<MeshFilter>())
@@ -30,8 +30,8 @@ namespace DecalSystem {
             {
                 return GameObject.FindObjectsOfType<MeshRenderer>()
                 .Where(i => i.GetComponent<Decal>() == null) // ignore another decals
-                .Where(i => i.gameObject.isStatic || !isOnlyStatic)
-                .Where(i => HasLayer(decal.LayerMask, i.gameObject.layer))
+                .Where(i => !i.gameObject.isStatic) //排除static 运行时会报错
+                .Where(i => HasLayer(decal.layerMask, i.gameObject.layer))
                 .Where(i => bounds.Intersects(i.bounds))
 
                 .Select(i => i.GetComponent<MeshFilter>())
@@ -48,7 +48,7 @@ namespace DecalSystem {
 
             return Terrain.activeTerrains
                 .Where( i => i.gameObject.isStatic || !isOnlyStatic )
-                .Where( i => HasLayer( decal.LayerMask, i.gameObject.layer ) )
+                .Where( i => HasLayer( decal.layerMask, i.gameObject.layer ) )
                 .Where( i => bounds.Intersects( i.GetBounds() ) )
                 .ToArray();
         }
@@ -86,13 +86,13 @@ namespace DecalSystem {
         }
 
 
-        public static void SetDirty(Decal decal) {
-            if (decal.gameObject.scene.IsValid()) {
-                if (!EditorApplication.isPlaying) EditorSceneManager.MarkSceneDirty( decal.gameObject.scene );
-            } else {
-                EditorUtility.SetDirty( decal.gameObject );
-            }
-        }
+        //public static void SetDirty(Decal decal) {
+        //    if (decal.gameObject.scene.IsValid()) {
+        //        if (!EditorApplication.isPlaying) EditorSceneManager.MarkSceneDirty( decal.gameObject.scene );
+        //    } else {
+        //        EditorUtility.SetDirty( decal.gameObject );
+        //    }
+        //}
 
 
         public static void FixRatio(Decal decal, ref Vector3 oldScale) {
@@ -127,4 +127,4 @@ namespace DecalSystem {
 
     }
 }
-#endif
+//#endif

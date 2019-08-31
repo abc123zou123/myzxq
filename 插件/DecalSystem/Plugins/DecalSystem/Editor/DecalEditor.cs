@@ -7,6 +7,7 @@ namespace DecalSystem {
     //[CustomEditor( typeof( Decal ) )]
     public class DecalEditor : Editor {
 
+        
         private Material[] materials;
 
         private Decal Target {
@@ -16,6 +17,13 @@ namespace DecalSystem {
 
         void OnEnable() {
             materials = GetMaterials();
+        }
+
+        [MenuItem("GameObject/Decal")]
+        internal static void Create()
+        {
+            var go = new GameObject("Decal", typeof(Decal), typeof(MeshFilter), typeof(MeshRenderer));
+            go.transform.rotation = Quaternion.Euler(90, 0, 0);
         }
 
 
@@ -30,7 +38,7 @@ namespace DecalSystem {
 
 
             EditorGUILayout.Separator();
-            Target.LayerMask = GUIUtils.LayerMaskField( "Layer Mask", Target.LayerMask );
+            Target.layerMask = GUIUtils.LayerMaskField( "Layer Mask", Target.layerMask );
             Target.MaxAngle = EditorGUILayout.Slider( "Max Angle", Target.MaxAngle, 0, 180 );
             Target.Offset = EditorGUILayout.Slider( "Offset", Target.Offset, 0.005f, 0.05f );
 

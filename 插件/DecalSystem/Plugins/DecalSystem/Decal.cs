@@ -1,9 +1,9 @@
-#if UNITY_EDITOR
+//#if UNITY_EDITOR
 namespace DecalSystem {
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
-    using UnityEditor;
+    //using UnityEditor;
     using UnityEngine;
     using UnityEngine.Serialization;
 
@@ -11,12 +11,27 @@ namespace DecalSystem {
     [ExecuteInEditMode]
     public class Decal : MonoBehaviour {
 
-        [FormerlySerializedAs( "material" )] public Material Material;
+       
+
+        public Material Material
+        {
+            get
+            {   if (GetComponent<MeshRenderer>() != null)
+                {
+                    return GetComponent<MeshRenderer>().sharedMaterial;
+                }
+                
+                return null;
+            }
+            set { }
+        }
        [HideInInspector] [FormerlySerializedAs( "sprite" )] public Sprite Sprite;
 
-        [FormerlySerializedAs( "affectedLayers" ), FormerlySerializedAs( "AffectedLayers" )] public LayerMask LayerMask = -1;
-        [FormerlySerializedAs( "maxAngle" )] public float MaxAngle = 90.0f;
-        [FormerlySerializedAs( "pushDistance" ), FormerlySerializedAs( "PushDistance" )] public float Offset = 0.009f;
+        [Header("注意:Static物体是不接受贴花的")]
+        [FormerlySerializedAs( "affectedLayers" ), FormerlySerializedAs( "AffectedLayers" )] public LayerMask layerMask = 1<<10;
+        [HideInInspector] public float MaxAngle = 90.0f;
+        [Range(0.005f,0.1f)]
+        public float Offset = 0.009f;
 
         private Vector3 oldScale;
 
@@ -49,14 +64,13 @@ namespace DecalSystem {
             }
         }
 
-        
+        //[Header("高度图除以的值,越低细节越高")]
+        //[Range(1f,10f)]
+        //public float ResultionDivideValue = 4f;
 
 
 
-        [MenuItem( "GameObject/Decal" )]
-        internal static void Create() {
-            new GameObject( "Decal", typeof( Decal ), typeof( MeshFilter ), typeof( MeshRenderer ) ).isStatic = true;
-        }
+       
 
 
         public void OnValidate() {
@@ -70,8 +84,9 @@ namespace DecalSystem {
             {
                 Sprite = null;
             }
-            MaxAngle = Mathf.Clamp( MaxAngle, 1, 180 );
-            Offset = Mathf.Clamp( Offset, 0.005f, 0.05f );
+            //MaxAngle = Mathf.Clamp( MaxAngle, 1, 180 );
+            //Offset = Mathf.Clamp( Offset, 0.005f, 0.1f );
+            
         }
 
         void Awake() {
@@ -86,27 +101,38 @@ namespace DecalSystem {
             else
             {
                 //var mesh = MeshFilter.sharedMesh;
+
                 //var meshes = GameObject.FindObjectsOfType<Decal>().Select(i => i.MeshFilter.sharedMesh);
                 //if (meshes.Contains(mesh)) MeshFilter.sharedMesh = null; // if mesh was copied
+                meshFilter.sharedMesh = new Mesh();
 
-                
             }
            
         }
 
+      
+
         void OnEnable() {
-            //if (Application.isPlaying) enabled = false;
         }
 
-        void Update() {
+        void OnWillRenderObject()
+        {
+            
             if (transform.hasChanged) {
                 transform.hasChanged = false;
                 BuildAndSetDirty();
             }
+
+          
         }
 
 
-        void OnDrawGizmosSelected() {
+        void OnDrawGizmosSelected()
+        {
+
+
+            //Debug.Log("OnDrawGizmosSelected");
+
             Gizmos.matrix = transform.localToWorldMatrix;
             Gizmos.color = Color.green;
             Gizmos.DrawWireCube( Vector3.zero, Vector3.one );
@@ -116,16 +142,18 @@ namespace DecalSystem {
             Gizmos.color = Color.white;
             Gizmos.DrawWireCube( bounds.center, bounds.size + Vector3.one * 0.01f );
 
-            //Gizmos.matrix = transform.localToWorldMatrix;
-            //Gizmos.color = Color.yellow;
-            //var mesh = MeshFilter.sharedMesh;
-            //if (mesh) {
-            //    var vertices = mesh.vertices;
-            //    var normals = mesh.normals;
-            //    for (var i = 0; i < vertices.Length; i++) {
-            //        Gizmos.DrawRay( vertices[ i ], normals[ i ] * 0.15f );
-            //    }
-            //}
+            Gizmos.matrix = transform.localToWorldMatrix;
+            Gizmos.color = Color.yellow;
+            var mesh = meshFilter.sharedMesh;
+            if (mesh)
+            {
+                var vertices = mesh.vertices;
+                var normals = mesh.normals;
+                for (var i = 0; i < vertices.Length; i++)
+                {
+                    Gizmos.DrawRay(vertices[i], normals[i] * 0.15f);
+                }
+            }
         }
 
 
@@ -134,10 +162,10 @@ namespace DecalSystem {
             if (meshRenderer)
             DecalUtils.FixRatio( this, ref oldScale );
             DecalBuilder.Build( this );
-            DecalUtils.SetDirty( this );
+            //DecalUtils.SetDirty( this );
         }
 
 
     }
 }
-#endif
+//#endif

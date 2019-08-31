@@ -1,9 +1,9 @@
-﻿#if UNITY_EDITOR
+﻿//#if UNITY_EDITOR
 namespace DecalSystem {
     using System.Collections;
     using System.Collections.Generic;
     using System.Linq;
-    using UnityEditor;
+    //using UnityEditor;
     using UnityEngine;
 
     static class DecalBuilder {
@@ -67,7 +67,9 @@ namespace DecalSystem {
 
         // Add
         private static void AddTriangles(MeshBuilder builder, IEnumerable<Triangle> triangles) {
+            //int i = 0;
             foreach (var triangle in triangles) {
+                //Debug.Log(i++);
                 AddTriangle( builder, triangle );
             }
         }
@@ -105,4 +107,4 @@ namespace DecalSystem {
 
     }
 }
-#endif
+//#endif
